@@ -8,7 +8,7 @@
     <link href="/2020/05/29/%E4%B8%83%E7%89%9B%E4%BA%91/%E4%B8%8A%E4%BC%A0%E5%9B%BE%E5%88%B0%E4%B8%83%E7%89%9B%E4%BA%91/"/>
     <url>/2020/05/29/%E4%B8%83%E7%89%9B%E4%BA%91/%E4%B8%8A%E4%BC%A0%E5%9B%BE%E5%88%B0%E4%B8%83%E7%89%9B%E4%BA%91/</url>
     
-    <content type="html"><![CDATA[<p>banner_img: /img/default.jpg</p><h3 id="1-引入七牛云依赖"><a href="#1-引入七牛云依赖" class="headerlink" title="1.引入七牛云依赖"></a>1.引入七牛云依赖</h3><pre><code class="hljs java">&lt;!--引入七牛云--&gt;&lt;dependency&gt;    &lt;groupId&gt;com.qiniu&lt;/groupId&gt;    &lt;artifactId&gt;qiniu-java-sdk&lt;/artifactId&gt;    &lt;version&gt;7.2.27&lt;/version&gt;&lt;/dependency&gt;</code></pre><h3 id="2-在application-yml文件中进行配置"><a href="#2-在application-yml文件中进行配置" class="headerlink" title="2.在application.yml文件中进行配置"></a>2.在application.yml文件中进行配置</h3><p>需要的配置项：</p><ol><li><p><code>domain</code>域名，用于上传文件成功后把文件访问路径返还回去，在内容管理中</p><p><img src="https://qiaozixing-image.oss-cn-beijing.aliyuncs.com/imagejietu00011.png" srcset="/img/loading.gif" alt="jietu00011"></p></li><li><p><code>access-key</code>和<code>secret-key</code>密钥，在个人中心的密钥管理中查看</p></li></ol><p><img src="https://qiaozixing-image.oss-cn-beijing.aliyuncs.com/imagesjietu00012.png" srcset="/img/loading.gif" alt="jietu00012"></p><pre><code>3. `bucket`存储空间名称</code></pre><pre><code class="hljs plain">upload:  qiniu:    domain: 填你的域名    access-key: 你的accesskey    secret-key: 你的secretKey    bucket: 你的存储空间名，我这里为colablog</code></pre><h3 id="3-编写上传配置类"><a href="#3-编写上传配置类" class="headerlink" title="3.编写上传配置类"></a>3.编写上传配置类</h3><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.bos.util;<span class="hljs-keyword">import</span> org.springframework.boot.context.properties.ConfigurationProperties;<span class="hljs-keyword">import</span> org.springframework.stereotype.Component;<span class="hljs-comment">/**</span><span class="hljs-comment"> * <span class="hljs-doctag">@Author</span>: admin</span><span class="hljs-comment"> * <span class="hljs-doctag">@CreateTime</span>: 2019-12-18 18:22</span><span class="hljs-comment"> * <span class="hljs-doctag">@Description</span>:</span><span class="hljs-comment"> */</span><span class="hljs-meta">@Component</span><span class="hljs-meta">@ConfigurationProperties</span>(prefix = <span class="hljs-string">"upload"</span>)<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">UploadProperties</span> </span>&#123;    <span class="hljs-keyword">private</span> Local local = <span class="hljs-keyword">new</span> Local();    <span class="hljs-function"><span class="hljs-keyword">public</span> Local <span class="hljs-title">getLocal</span><span class="hljs-params">()</span> </span>&#123;        <span class="hljs-keyword">return</span> local;    &#125;    <span class="hljs-comment">/**</span><span class="hljs-comment">     * <span class="hljs-doctag">@author</span>: Johnson</span><span class="hljs-comment">     * <span class="hljs-doctag">@Date</span>: 2019/12/16</span><span class="hljs-comment">     * 本地上传配置</span><span class="hljs-comment">     */</span>    <span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Local</span> </span>&#123;<span class="hljs-comment">//        ...</span>    &#125;    <span class="hljs-keyword">private</span> Qiniu qiniu = <span class="hljs-keyword">new</span> Qiniu();    <span class="hljs-function"><span class="hljs-keyword">public</span> Qiniu <span class="hljs-title">getQiniu</span><span class="hljs-params">()</span> </span>&#123;        <span class="hljs-keyword">return</span> qiniu;    &#125;    <span class="hljs-comment">/**</span><span class="hljs-comment">     * <span class="hljs-doctag">@author</span>: Johnson</span><span class="hljs-comment">     * <span class="hljs-doctag">@Date</span>: 2019/12/16</span><span class="hljs-comment">     * 七牛云上传配置</span><span class="hljs-comment">     */</span>    <span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Qiniu</span> </span>&#123;        <span class="hljs-comment">/**</span><span class="hljs-comment">         * 域名</span><span class="hljs-comment">         */</span>        <span class="hljs-keyword">private</span> String domain;        <span class="hljs-comment">/**</span><span class="hljs-comment">         * 从下面这个地址中获取accessKey和secretKey</span><span class="hljs-comment">         * https://portal.qiniu.com/user/key</span><span class="hljs-comment">         */</span>        <span class="hljs-keyword">private</span> String accessKey;        <span class="hljs-keyword">private</span> String secretKey;        <span class="hljs-comment">/**</span><span class="hljs-comment">         * 存储空间名</span><span class="hljs-comment">         */</span>        <span class="hljs-keyword">private</span> String bucket;        <span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">getDomain</span><span class="hljs-params">()</span> </span>&#123;            <span class="hljs-keyword">return</span> domain;        &#125;        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setDomain</span><span class="hljs-params">(String domain)</span> </span>&#123;            <span class="hljs-keyword">this</span>.domain = domain;        &#125;        <span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">getAccessKey</span><span class="hljs-params">()</span> </span>&#123;            <span class="hljs-keyword">return</span> accessKey;        &#125;        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setAccessKey</span><span class="hljs-params">(String accessKey)</span> </span>&#123;            <span class="hljs-keyword">this</span>.accessKey = accessKey;        &#125;        <span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">getSecretKey</span><span class="hljs-params">()</span> </span>&#123;            <span class="hljs-keyword">return</span> secretKey;        &#125;        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setSecretKey</span><span class="hljs-params">(String secretKey)</span> </span>&#123;            <span class="hljs-keyword">this</span>.secretKey = secretKey;        &#125;        <span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">getBucket</span><span class="hljs-params">()</span> </span>&#123;            <span class="hljs-keyword">return</span> bucket;        &#125;        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setBucket</span><span class="hljs-params">(String bucket)</span> </span>&#123;            <span class="hljs-keyword">this</span>.bucket = bucket;        &#125;    &#125;&#125;</code></pre><h3 id="4-写一个上传文件的接口和实现类"><a href="#4-写一个上传文件的接口和实现类" class="headerlink" title="4.写一个上传文件的接口和实现类"></a>4.写一个上传文件的接口和实现类</h3><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">UploadFile</span> </span>&#123;    <span class="hljs-function">String <span class="hljs-title">uploadFile</span><span class="hljs-params">(MultipartFile file)</span></span>;&#125;</code></pre><p><strong>实现类：</strong>重点，通过Region.xxx指点存储空间所在的区域，华东<code>Region.region0()</code>,华北<code>Region.region1()</code>，华南<code>Region.region2()</code>,北美<code>Region.regionNa0()</code></p><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.bos.base.service.impl;<span class="hljs-keyword">import</span> com.bos.base.service.UploadFile;<span class="hljs-keyword">import</span> com.bos.util.UploadProperties;<span class="hljs-keyword">import</span> org.springframework.web.multipart.MultipartFile;<span class="hljs-keyword">import</span> com.qiniu.http.Response;<span class="hljs-keyword">import</span> com.qiniu.storage.Configuration;<span class="hljs-keyword">import</span> com.qiniu.storage.Region;<span class="hljs-keyword">import</span> com.qiniu.storage.UploadManager;<span class="hljs-keyword">import</span> com.qiniu.util.Auth;<span class="hljs-keyword">import</span> java.io.IOException;<span class="hljs-keyword">import</span> java.util.UUID;<span class="hljs-comment">/**</span><span class="hljs-comment"> * <span class="hljs-doctag">@Author</span>: admin</span><span class="hljs-comment"> * <span class="hljs-doctag">@CreateTime</span>: 2019-12-18 18:24</span><span class="hljs-comment"> * <span class="hljs-doctag">@Description</span>:</span><span class="hljs-comment"> */</span><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">UploadFileQiniu</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">UploadFile</span> </span>&#123;    <span class="hljs-keyword">private</span> UploadProperties.Qiniu properties;    <span class="hljs-comment">//构造一个带指定Region对象的配置类</span>    <span class="hljs-keyword">private</span> Configuration cfg = <span class="hljs-keyword">new</span> Configuration(Region.region2());    <span class="hljs-keyword">private</span> UploadManager uploadManager= <span class="hljs-keyword">new</span> UploadManager(cfg);    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">UploadFileQiniu</span><span class="hljs-params">(UploadProperties.Qiniu properties)</span> </span>&#123;        <span class="hljs-keyword">this</span>.properties = properties;    &#125;    <span class="hljs-comment">/**</span><span class="hljs-comment">     * <span class="hljs-doctag">@author</span>: Johnson</span><span class="hljs-comment">     */</span>    <span class="hljs-meta">@Override</span>    <span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">uploadFile</span><span class="hljs-params">(MultipartFile file)</span> </span>&#123;        Auth auth = Auth.create(properties.getAccessKey(), properties.getSecretKey());        String token = auth.uploadToken(properties.getBucket());        <span class="hljs-keyword">try</span> &#123;            String originalFilename = file.getOriginalFilename();            <span class="hljs-comment">// 文件后缀</span>            String suffix = originalFilename.substring(originalFilename.lastIndexOf(<span class="hljs-string">"."</span>));            System.out.println(<span class="hljs-string">"文件后缀----&gt;"</span>+suffix);            String fileKey = UUID.randomUUID().toString() + suffix;            System.out.println(<span class="hljs-string">"文件后缀fileKey----&gt;"</span>+fileKey);            Response response = uploadManager.put(file.getInputStream(), fileKey, token, <span class="hljs-keyword">null</span>, <span class="hljs-keyword">null</span>);            System.out.println(<span class="hljs-string">"响应response----&gt;"</span>+response);            <span class="hljs-keyword">return</span> properties.getDomain() + fileKey;        &#125; <span class="hljs-keyword">catch</span> (IOException e) &#123;            e.printStackTrace();        &#125;        <span class="hljs-keyword">return</span> <span class="hljs-string">"error"</span>;    &#125;&#125;</code></pre><h3 id="调用文件上传"><a href="#调用文件上传" class="headerlink" title="调用文件上传"></a>调用文件上传</h3><pre><code class="hljs java"><span class="hljs-meta">@RestController</span><span class="hljs-meta">@RequestMapping</span>(<span class="hljs-string">"/upload"</span>)<span class="hljs-meta">@CrossOrigin</span><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">UploadFileController</span> </span>&#123;    <span class="hljs-meta">@Autowired</span>    UploadProperties uploadProperties;    <span class="hljs-meta">@PostMapping</span>(<span class="hljs-string">"/img"</span>)    <span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">uploadFileYun</span><span class="hljs-params">(@RequestParam(<span class="hljs-string">"file"</span>)</span> MultipartFile file) </span>&#123;        <span class="hljs-comment">// 上传到七牛云</span>        UploadFile uploadFile = <span class="hljs-keyword">new</span> UploadFileQiniu(uploadProperties.getQiniu());        <span class="hljs-keyword">return</span> uploadFile.uploadFile(file);    &#125;&#125;</code></pre>]]></content>
+    <content type="html"><![CDATA[<p>index_img: /img/mao.jpg</p><p>banner_img: /img/default.jpg</p><h3 id="1-引入七牛云依赖"><a href="#1-引入七牛云依赖" class="headerlink" title="1.引入七牛云依赖"></a>1.引入七牛云依赖</h3><pre><code class="hljs java">&lt;!--引入七牛云--&gt;&lt;dependency&gt;    &lt;groupId&gt;com.qiniu&lt;/groupId&gt;    &lt;artifactId&gt;qiniu-java-sdk&lt;/artifactId&gt;    &lt;version&gt;7.2.27&lt;/version&gt;&lt;/dependency&gt;</code></pre><h3 id="2-在application-yml文件中进行配置"><a href="#2-在application-yml文件中进行配置" class="headerlink" title="2.在application.yml文件中进行配置"></a>2.在application.yml文件中进行配置</h3><p>需要的配置项：</p><ol><li><p><code>domain</code>域名，用于上传文件成功后把文件访问路径返还回去，在内容管理中</p><p><img src="https://qiaozixing-image.oss-cn-beijing.aliyuncs.com/imagejietu00011.png" srcset="/img/loading.gif" alt="jietu00011"></p></li><li><p><code>access-key</code>和<code>secret-key</code>密钥，在个人中心的密钥管理中查看</p></li></ol><p><img src="https://qiaozixing-image.oss-cn-beijing.aliyuncs.com/imagesjietu00012.png" srcset="/img/loading.gif" alt="jietu00012"></p><pre><code>3. `bucket`存储空间名称</code></pre><pre><code class="hljs plain">upload:  qiniu:    domain: 填你的域名    access-key: 你的accesskey    secret-key: 你的secretKey    bucket: 你的存储空间名，我这里为colablog</code></pre><h3 id="3-编写上传配置类"><a href="#3-编写上传配置类" class="headerlink" title="3.编写上传配置类"></a>3.编写上传配置类</h3><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.bos.util;<span class="hljs-keyword">import</span> org.springframework.boot.context.properties.ConfigurationProperties;<span class="hljs-keyword">import</span> org.springframework.stereotype.Component;<span class="hljs-comment">/**</span><span class="hljs-comment"> * <span class="hljs-doctag">@Author</span>: admin</span><span class="hljs-comment"> * <span class="hljs-doctag">@CreateTime</span>: 2019-12-18 18:22</span><span class="hljs-comment"> * <span class="hljs-doctag">@Description</span>:</span><span class="hljs-comment"> */</span><span class="hljs-meta">@Component</span><span class="hljs-meta">@ConfigurationProperties</span>(prefix = <span class="hljs-string">"upload"</span>)<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">UploadProperties</span> </span>&#123;    <span class="hljs-keyword">private</span> Local local = <span class="hljs-keyword">new</span> Local();    <span class="hljs-function"><span class="hljs-keyword">public</span> Local <span class="hljs-title">getLocal</span><span class="hljs-params">()</span> </span>&#123;        <span class="hljs-keyword">return</span> local;    &#125;    <span class="hljs-comment">/**</span><span class="hljs-comment">     * <span class="hljs-doctag">@author</span>: Johnson</span><span class="hljs-comment">     * <span class="hljs-doctag">@Date</span>: 2019/12/16</span><span class="hljs-comment">     * 本地上传配置</span><span class="hljs-comment">     */</span>    <span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Local</span> </span>&#123;<span class="hljs-comment">//        ...</span>    &#125;    <span class="hljs-keyword">private</span> Qiniu qiniu = <span class="hljs-keyword">new</span> Qiniu();    <span class="hljs-function"><span class="hljs-keyword">public</span> Qiniu <span class="hljs-title">getQiniu</span><span class="hljs-params">()</span> </span>&#123;        <span class="hljs-keyword">return</span> qiniu;    &#125;    <span class="hljs-comment">/**</span><span class="hljs-comment">     * <span class="hljs-doctag">@author</span>: Johnson</span><span class="hljs-comment">     * <span class="hljs-doctag">@Date</span>: 2019/12/16</span><span class="hljs-comment">     * 七牛云上传配置</span><span class="hljs-comment">     */</span>    <span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Qiniu</span> </span>&#123;        <span class="hljs-comment">/**</span><span class="hljs-comment">         * 域名</span><span class="hljs-comment">         */</span>        <span class="hljs-keyword">private</span> String domain;        <span class="hljs-comment">/**</span><span class="hljs-comment">         * 从下面这个地址中获取accessKey和secretKey</span><span class="hljs-comment">         * https://portal.qiniu.com/user/key</span><span class="hljs-comment">         */</span>        <span class="hljs-keyword">private</span> String accessKey;        <span class="hljs-keyword">private</span> String secretKey;        <span class="hljs-comment">/**</span><span class="hljs-comment">         * 存储空间名</span><span class="hljs-comment">         */</span>        <span class="hljs-keyword">private</span> String bucket;        <span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">getDomain</span><span class="hljs-params">()</span> </span>&#123;            <span class="hljs-keyword">return</span> domain;        &#125;        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setDomain</span><span class="hljs-params">(String domain)</span> </span>&#123;            <span class="hljs-keyword">this</span>.domain = domain;        &#125;        <span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">getAccessKey</span><span class="hljs-params">()</span> </span>&#123;            <span class="hljs-keyword">return</span> accessKey;        &#125;        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setAccessKey</span><span class="hljs-params">(String accessKey)</span> </span>&#123;            <span class="hljs-keyword">this</span>.accessKey = accessKey;        &#125;        <span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">getSecretKey</span><span class="hljs-params">()</span> </span>&#123;            <span class="hljs-keyword">return</span> secretKey;        &#125;        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setSecretKey</span><span class="hljs-params">(String secretKey)</span> </span>&#123;            <span class="hljs-keyword">this</span>.secretKey = secretKey;        &#125;        <span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">getBucket</span><span class="hljs-params">()</span> </span>&#123;            <span class="hljs-keyword">return</span> bucket;        &#125;        <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setBucket</span><span class="hljs-params">(String bucket)</span> </span>&#123;            <span class="hljs-keyword">this</span>.bucket = bucket;        &#125;    &#125;&#125;</code></pre><h3 id="4-写一个上传文件的接口和实现类"><a href="#4-写一个上传文件的接口和实现类" class="headerlink" title="4.写一个上传文件的接口和实现类"></a>4.写一个上传文件的接口和实现类</h3><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">UploadFile</span> </span>&#123;    <span class="hljs-function">String <span class="hljs-title">uploadFile</span><span class="hljs-params">(MultipartFile file)</span></span>;&#125;</code></pre><p><strong>实现类：</strong>重点，通过Region.xxx指点存储空间所在的区域，华东<code>Region.region0()</code>,华北<code>Region.region1()</code>，华南<code>Region.region2()</code>,北美<code>Region.regionNa0()</code></p><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.bos.base.service.impl;<span class="hljs-keyword">import</span> com.bos.base.service.UploadFile;<span class="hljs-keyword">import</span> com.bos.util.UploadProperties;<span class="hljs-keyword">import</span> org.springframework.web.multipart.MultipartFile;<span class="hljs-keyword">import</span> com.qiniu.http.Response;<span class="hljs-keyword">import</span> com.qiniu.storage.Configuration;<span class="hljs-keyword">import</span> com.qiniu.storage.Region;<span class="hljs-keyword">import</span> com.qiniu.storage.UploadManager;<span class="hljs-keyword">import</span> com.qiniu.util.Auth;<span class="hljs-keyword">import</span> java.io.IOException;<span class="hljs-keyword">import</span> java.util.UUID;<span class="hljs-comment">/**</span><span class="hljs-comment"> * <span class="hljs-doctag">@Author</span>: admin</span><span class="hljs-comment"> * <span class="hljs-doctag">@CreateTime</span>: 2019-12-18 18:24</span><span class="hljs-comment"> * <span class="hljs-doctag">@Description</span>:</span><span class="hljs-comment"> */</span><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">UploadFileQiniu</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">UploadFile</span> </span>&#123;    <span class="hljs-keyword">private</span> UploadProperties.Qiniu properties;    <span class="hljs-comment">//构造一个带指定Region对象的配置类</span>    <span class="hljs-keyword">private</span> Configuration cfg = <span class="hljs-keyword">new</span> Configuration(Region.region2());    <span class="hljs-keyword">private</span> UploadManager uploadManager= <span class="hljs-keyword">new</span> UploadManager(cfg);    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">UploadFileQiniu</span><span class="hljs-params">(UploadProperties.Qiniu properties)</span> </span>&#123;        <span class="hljs-keyword">this</span>.properties = properties;    &#125;    <span class="hljs-comment">/**</span><span class="hljs-comment">     * <span class="hljs-doctag">@author</span>: Johnson</span><span class="hljs-comment">     */</span>    <span class="hljs-meta">@Override</span>    <span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">uploadFile</span><span class="hljs-params">(MultipartFile file)</span> </span>&#123;        Auth auth = Auth.create(properties.getAccessKey(), properties.getSecretKey());        String token = auth.uploadToken(properties.getBucket());        <span class="hljs-keyword">try</span> &#123;            String originalFilename = file.getOriginalFilename();            <span class="hljs-comment">// 文件后缀</span>            String suffix = originalFilename.substring(originalFilename.lastIndexOf(<span class="hljs-string">"."</span>));            System.out.println(<span class="hljs-string">"文件后缀----&gt;"</span>+suffix);            String fileKey = UUID.randomUUID().toString() + suffix;            System.out.println(<span class="hljs-string">"文件后缀fileKey----&gt;"</span>+fileKey);            Response response = uploadManager.put(file.getInputStream(), fileKey, token, <span class="hljs-keyword">null</span>, <span class="hljs-keyword">null</span>);            System.out.println(<span class="hljs-string">"响应response----&gt;"</span>+response);            <span class="hljs-keyword">return</span> properties.getDomain() + fileKey;        &#125; <span class="hljs-keyword">catch</span> (IOException e) &#123;            e.printStackTrace();        &#125;        <span class="hljs-keyword">return</span> <span class="hljs-string">"error"</span>;    &#125;&#125;</code></pre><h3 id="调用文件上传"><a href="#调用文件上传" class="headerlink" title="调用文件上传"></a>调用文件上传</h3><pre><code class="hljs java"><span class="hljs-meta">@RestController</span><span class="hljs-meta">@RequestMapping</span>(<span class="hljs-string">"/upload"</span>)<span class="hljs-meta">@CrossOrigin</span><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">UploadFileController</span> </span>&#123;    <span class="hljs-meta">@Autowired</span>    UploadProperties uploadProperties;    <span class="hljs-meta">@PostMapping</span>(<span class="hljs-string">"/img"</span>)    <span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">uploadFileYun</span><span class="hljs-params">(@RequestParam(<span class="hljs-string">"file"</span>)</span> MultipartFile file) </span>&#123;        <span class="hljs-comment">// 上传到七牛云</span>        UploadFile uploadFile = <span class="hljs-keyword">new</span> UploadFileQiniu(uploadProperties.getQiniu());        <span class="hljs-keyword">return</span> uploadFile.uploadFile(file);    &#125;&#125;</code></pre>]]></content>
     
     
     <categories>
@@ -99,8 +99,8 @@
   
   <entry>
     <title>文章标题</title>
-    <link href="/2019/10/10/b/"/>
-    <url>/2019/10/10/b/</url>
+    <link href="/2019/10/10/c/"/>
+    <url>/2019/10/10/c/</url>
     
     <content type="html"><![CDATA[<p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p><p><a href="https://hexo.io/docs/one-command-deployment.html" target="_blank" rel="noopener">https://hexo.io/docs/one-command-deployment.html</a>)</p>]]></content>
     
@@ -122,27 +122,6 @@
     <title>文章标题</title>
     <link href="/2019/10/10/h/"/>
     <url>/2019/10/10/h/</url>
-    
-    <content type="html"><![CDATA[<p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p><p><a href="https://hexo.io/docs/one-command-deployment.html" target="_blank" rel="noopener">https://hexo.io/docs/one-command-deployment.html</a>)</p>]]></content>
-    
-    
-    
-    <tags>
-      
-      <tag>Hexo</tag>
-      
-      <tag>Fluid</tag>
-      
-    </tags>
-    
-  </entry>
-  
-  
-  
-  <entry>
-    <title>文章标题</title>
-    <link href="/2019/10/10/i/"/>
-    <url>/2019/10/10/i/</url>
     
     <content type="html"><![CDATA[<p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p><p><a href="https://hexo.io/docs/one-command-deployment.html" target="_blank" rel="noopener">https://hexo.io/docs/one-command-deployment.html</a>)</p>]]></content>
     
@@ -189,113 +168,8 @@
   
   <entry>
     <title>文章标题</title>
-    <link href="/2019/10/10/c/"/>
-    <url>/2019/10/10/c/</url>
-    
-    <content type="html"><![CDATA[<p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p><p><a href="https://hexo.io/docs/one-command-deployment.html" target="_blank" rel="noopener">https://hexo.io/docs/one-command-deployment.html</a>)</p>]]></content>
-    
-    
-    
-    <tags>
-      
-      <tag>Hexo</tag>
-      
-      <tag>Fluid</tag>
-      
-    </tags>
-    
-  </entry>
-  
-  
-  
-  <entry>
-    <title>文章标题</title>
-    <link href="/2019/10/10/j/"/>
-    <url>/2019/10/10/j/</url>
-    
-    <content type="html"><![CDATA[<p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p><p><a href="https://hexo.io/docs/one-command-deployment.html" target="_blank" rel="noopener">https://hexo.io/docs/one-command-deployment.html</a>)</p>]]></content>
-    
-    
-    
-    <tags>
-      
-      <tag>Hexo</tag>
-      
-      <tag>Fluid</tag>
-      
-    </tags>
-    
-  </entry>
-  
-  
-  
-  <entry>
-    <title>文章标题</title>
-    <link href="/2019/10/10/m/"/>
-    <url>/2019/10/10/m/</url>
-    
-    <content type="html"><![CDATA[<p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p><p><a href="https://hexo.io/docs/one-command-deployment.html" target="_blank" rel="noopener">https://hexo.io/docs/one-command-deployment.html</a>)</p>]]></content>
-    
-    
-    
-    <tags>
-      
-      <tag>Hexo</tag>
-      
-      <tag>Fluid</tag>
-      
-    </tags>
-    
-  </entry>
-  
-  
-  
-  <entry>
-    <title>文章标题</title>
-    <link href="/2019/10/10/l/"/>
-    <url>/2019/10/10/l/</url>
-    
-    <content type="html"><![CDATA[<p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p><p><a href="https://hexo.io/docs/one-command-deployment.html" target="_blank" rel="noopener">https://hexo.io/docs/one-command-deployment.html</a>)</p>]]></content>
-    
-    
-    
-    <tags>
-      
-      <tag>Hexo</tag>
-      
-      <tag>Fluid</tag>
-      
-    </tags>
-    
-  </entry>
-  
-  
-  
-  <entry>
-    <title>文章标题</title>
-    <link href="/2019/10/10/a/"/>
-    <url>/2019/10/10/a/</url>
-    
-    <content type="html"><![CDATA[<p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p><p><a href="https://hexo.io/docs/one-command-deployment.html" target="_blank" rel="noopener">https://hexo.io/docs/one-command-deployment.html</a>)</p>]]></content>
-    
-    
-    
-    <tags>
-      
-      <tag>Hexo</tag>
-      
-      <tag>Fluid</tag>
-      
-    </tags>
-    
-  </entry>
-  
-  
-  
-  <entry>
-    <title>文章标题</title>
-    <link href="/2019/10/10/n/"/>
-    <url>/2019/10/10/n/</url>
+    <link href="/2019/10/10/i/"/>
+    <url>/2019/10/10/i/</url>
     
     <content type="html"><![CDATA[<p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p><p><a href="https://hexo.io/docs/one-command-deployment.html" target="_blank" rel="noopener">https://hexo.io/docs/one-command-deployment.html</a>)</p>]]></content>
     
@@ -338,6 +212,132 @@
     <title>文章标题</title>
     <link href="/2019/10/10/k/"/>
     <url>/2019/10/10/k/</url>
+    
+    <content type="html"><![CDATA[<p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p><p><a href="https://hexo.io/docs/one-command-deployment.html" target="_blank" rel="noopener">https://hexo.io/docs/one-command-deployment.html</a>)</p>]]></content>
+    
+    
+    
+    <tags>
+      
+      <tag>Hexo</tag>
+      
+      <tag>Fluid</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>文章标题</title>
+    <link href="/2019/10/10/l/"/>
+    <url>/2019/10/10/l/</url>
+    
+    <content type="html"><![CDATA[<p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p><p><a href="https://hexo.io/docs/one-command-deployment.html" target="_blank" rel="noopener">https://hexo.io/docs/one-command-deployment.html</a>)</p>]]></content>
+    
+    
+    
+    <tags>
+      
+      <tag>Hexo</tag>
+      
+      <tag>Fluid</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>文章标题</title>
+    <link href="/2019/10/10/m/"/>
+    <url>/2019/10/10/m/</url>
+    
+    <content type="html"><![CDATA[<p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p><p><a href="https://hexo.io/docs/one-command-deployment.html" target="_blank" rel="noopener">https://hexo.io/docs/one-command-deployment.html</a>)</p>]]></content>
+    
+    
+    
+    <tags>
+      
+      <tag>Hexo</tag>
+      
+      <tag>Fluid</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>文章标题</title>
+    <link href="/2019/10/10/n/"/>
+    <url>/2019/10/10/n/</url>
+    
+    <content type="html"><![CDATA[<p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p><p><a href="https://hexo.io/docs/one-command-deployment.html" target="_blank" rel="noopener">https://hexo.io/docs/one-command-deployment.html</a>)</p>]]></content>
+    
+    
+    
+    <tags>
+      
+      <tag>Hexo</tag>
+      
+      <tag>Fluid</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>文章标题</title>
+    <link href="/2019/10/10/b/"/>
+    <url>/2019/10/10/b/</url>
+    
+    <content type="html"><![CDATA[<p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p><p><a href="https://hexo.io/docs/one-command-deployment.html" target="_blank" rel="noopener">https://hexo.io/docs/one-command-deployment.html</a>)</p>]]></content>
+    
+    
+    
+    <tags>
+      
+      <tag>Hexo</tag>
+      
+      <tag>Fluid</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>文章标题</title>
+    <link href="/2019/10/10/a/"/>
+    <url>/2019/10/10/a/</url>
+    
+    <content type="html"><![CDATA[<p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p><p><a href="https://hexo.io/docs/one-command-deployment.html" target="_blank" rel="noopener">https://hexo.io/docs/one-command-deployment.html</a>)</p>]]></content>
+    
+    
+    
+    <tags>
+      
+      <tag>Hexo</tag>
+      
+      <tag>Fluid</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>文章标题</title>
+    <link href="/2019/10/10/j/"/>
+    <url>/2019/10/10/j/</url>
     
     <content type="html"><![CDATA[<p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p><p><a href="https://hexo.io/docs/one-command-deployment.html" target="_blank" rel="noopener">https://hexo.io/docs/one-command-deployment.html</a>)</p>]]></content>
     
